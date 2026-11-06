@@ -1,6 +1,6 @@
 # Azure Key Vault Encryption Wrapper
 
-**Encrypt sensitive fields, wrap the data key and retain the exact key version.**
+**Protect sensitive fields even if someone obtains a copy of the stored records.**
 
 [The problem](#the-business-problem) · [The solution](#the-solution) · [What was built](#what-was-built) · [Proof it works](#proof-it-works) · [Commands](docs/COMMANDS.md)
 
@@ -8,23 +8,19 @@
 
 ## The Business Problem
 
-A workforce platform handles sensitive onboarding and payroll fields. Database/storage encryption alone does not enforce application-level field access. Records also need protection against tampering, wrong-record reuse and losing decryption after key rotation.
-
-1. **A database copy should not reveal every sensitive field.** The application needs a separate key-access boundary beyond storage encryption.
-2. **Ciphertext must belong to the right record.** Copying a value into another packet or field must fail authentication.
-3. **Rotation must preserve history.** Old rows need the exact wrapping-key version that protected their data key.
+The application handles sensitive onboarding and payroll details. Encryption provided by the database or storage service is useful, but the application also needs control over who can read individual fields. Older records must remain readable after encryption keys change.
 
 ## The Solution
 
-Use envelope encryption. Encrypt each value locally with a fresh AES-256-GCM data-encryption key (DEK), then wrap that small key with RSA-OAEP-256 through Azure Key Vault. Store the ciphertext and wrapped key together with the nonce, authentication tag and key-version metadata. On an authorized read, unwrap the recorded key version and authenticate the original record context.
+Encrypt each sensitive value with its own temporary data key. Use Azure Key Vault to protect that key, and save the exact key version needed to read the record later. Check that the encrypted value still belongs to the correct record before returning it.
 
-**Business goal:** Add an application-level protection layer around sensitive records while keeping key custody, historical reads and recovery explicit.
+**Business outcome:** Add protection around sensitive fields while keeping access, key changes and recovery clearly defined.
 
 ### Actual implementation
 
 This case study comes from the workforce platform I built and operated. It includes actual sensitive-field and bank-details encryption source/tests, the Key Vault adapter boundary and related key/RBAC Terraform. The deployed pattern also supports separate payroll/form encryption domains. No real records, credentials, tenant IDs or production state are included.
 
-The local demonstration uses real cryptography with temporary in-memory RSA keys. It is not a cloud permission test or a production recovery rehearsal. [Evidence scope](docs/VALIDATION.md) and [source mapping](docs/SOURCE-MAP.md) separate the layers.
+The local demonstration uses real cryptography with temporary in-memory RSA keys. It is not a cloud permission test or a production practice recovery. [Evidence scope](docs/VALIDATION.md) and [source mapping](docs/SOURCE-MAP.md) separate the layers.
 
 ## Architecture
 
@@ -53,7 +49,7 @@ flowchart LR
 | --- | --- | --- |
 | Actual AES-GCM field wrapper | Fresh DEK/nonce, authenticated record binding and validated decryption | [Source](reference/fieldEncryption.ts) |
 | Actual bank-details wrapper | Protect a JSON payload with a separate authenticated domain | [Source](reference/bankDetailsEncryption.ts) |
-| Exact key/version validation | Reject a foreign key identifier or malformed historical version | [Rules](reference/keyIdentifiers.ts) |
+| Exact key/version validation | Reject a foreign key identifier or incorrectly structured historical version | [Rules](reference/keyIdentifiers.ts) |
 | Key Vault wrapping adapter | Use managed identity and recorded key version for RSA wrap/unwrap | [Adapter](reference/keyVaultAdapter.ts) |
 | Real local crypto exercise | Demonstrate tampering, context binding, rotation and reference rewrap without cloud calls | [Reference](lab/envelope.py) |
 | Vault/key and scoped RBAC | Private RBAC vault, optional RSA-3072 wrap-only key and exact-key runtime grant | [Terraform](infra/main.tf) |
@@ -75,11 +71,11 @@ python -B -m unittest discover -s tests -v
 python -B -m lab demo
 ```
 
-**What to look for:** A fictional value round-trips with a real local RSA-wrapped AES key. Changed ciphertext, wrong record/field, malformed nonce/tag and unavailable key versions are rejected. No plaintext is released after an authentication failure.
+**What to look for:** A fictional value round-trips with a real local RSA-wrapped AES key. Changed encrypted value, wrong record/field, incorrectly structured nonce/tag and unavailable key versions are rejected. No plaintext is released after an authentication failure.
 
 ### 3. Rotation does not replace the historical key reference
 
-The demonstration writes with v1, rotates new writes to v2, reads the retained v1 record and exercises a local rewrap while preserving ciphertext. It then removes only its temporary local v1 key to show that the latest key is not a fallback.
+The demonstration writes with v1, rotates new writes to v2, reads the retained v1 record and exercises a local rewrap while preserving encrypted value. It then removes only its temporary local v1 key to show that the latest key is not a fallback.
 
 ```bash
 python -B -m unittest discover -s tests -p test_envelope.py -k rotation -v
@@ -131,7 +127,7 @@ The root defines a private Standard Key Vault, purge/soft-delete protection, a s
 
 ## Scaling and Tradeoffs
 
-Envelope encryption keeps bulk payload work local and makes key custody explicit, but adds key-service latency, permissions and recovery dependencies. Bound concurrency, monitor wrap/unwrap failures and retain version references. Avoid plaintext/DEK caching without a separately reviewed design. Read [strengths, weaknesses and tradeoffs](docs/SCALING.md).
+Envelope encryption keeps bulk payload work local and makes key control explicit, but adds key-service latency, permissions and recovery dependencies. Bound concurrency, monitor wrap/unwrap failures and retain version references. Avoid plaintext/DEK caching without a separately reviewed design. Read [strengths, weaknesses and tradeoffs](docs/SCALING.md).
 
 ## Skills Demonstrated
 

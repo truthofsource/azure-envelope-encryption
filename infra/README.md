@@ -3,9 +3,9 @@
 | Resource / file | Purpose |
 | --- | --- |
 | Private Standard Key Vault | RBAC authorization, no public network ingress, purge protection and 90-day soft deletion |
-| Optional wrapping key | RSA-3072 with wrapKey/unwrapKey only and the source rotation/expiry pattern |
+| Optional key used to protect the data key | RSA-3072 with wrapKey/unwrapKey only and the source rotation/expiry pattern |
 | Runtime grant | Key Vault Crypto Service Encryption User scoped to one key, not vault administration |
-| Tests | Private/recovery defaults, key-creation preflight and wrap-only key attributes |
+| Tests | Private/recovery defaults, key-creation readiness check and wrap-only key attributes |
 
 ```bash
 terraform -chdir=infra init -backend=false -input=false

@@ -1,5 +1,7 @@
 # Encryption operations and troubleshooting
 
+**Terms used here:** A nonce is a value used once for a particular encryption key.
+
 | Symptom | Inspect | Response |
 | --- | --- | --- |
 | Encryption cannot wrap a new key | Exact key URI, current key state, wrap permission and network route | Fail the write; do not store plaintext as a fallback |

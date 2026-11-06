@@ -1,5 +1,7 @@
 # Encryption-wrapper architecture
 
+**Terms used here:** A fixture is test data or a test setup used instead of real business records. A nonce is a value used once for a particular encryption key.
+
 ```mermaid
 flowchart LR
   API[Authorized application request] --> Context[Trusted record and field context]
@@ -21,9 +23,9 @@ flowchart LR
 
 ## Two keys with different jobs
 
-The DEK is a random 32-byte symmetric key generated for one encryption. AES-GCM uses it locally to encrypt the payload and generate the authentication tag. The RSA key is the wrapping/key-encryption key (KEK), held by Key Vault in the hosted design. RSA-OAEP-256 protects the DEK; RSA is not used to encrypt the full payroll/form payload.
+Each encryption starts with a fresh random 32-byte data key, called a DEK. AES-GCM uses that key to protect the value and create a tag that detects changes. A separate RSA key, held by Key Vault in the hosted design, protects the small data key using RSA-OAEP-256. It does not encrypt the whole payroll or form record.
 
-The application stores ciphertext, nonce, tag, wrapped DEK, key ID and exact version. It reuses the recorded version for historical reads. Each domain has an explicit AAD namespace plus record identifiers. A legitimate ciphertext copied to another record/field fails authentication.
+The application saves the encrypted value, the protected data key and the information needed to check and read them later. This includes the nonce, tag and exact Key Vault key version. It also checks the record and field identifiers, so copying an encrypted value to the wrong record or field causes the read to fail.
 
 ## Trust boundaries
 
@@ -35,4 +37,4 @@ The application stores ciphertext, nonce, tag, wrapped DEK, key ID and exact ver
 
 ## Public implementation boundary
 
-The Node field/bank encryption and Key Vault adapter are extracted from actual implementation source. Portable imports and public domain labels are documented in [the source map](SOURCE-MAP.md). Source AES tests inject wrapper fixtures. The Python demo additionally uses real in-memory RSA keys, but does not emulate managed identity, Key Vault custody, HSM behavior or Azure policy.
+The Node field/bank encryption and Key Vault adapter are extracted from actual implementation source. Portable imports and public domain labels are documented in [the source map](SOURCE-MAP.md). Source AES tests inject wrapper fixtures. The Python demo additionally uses real in-memory RSA keys, but does not emulate managed identity, Key Vault control, HSM behavior or Azure policy.

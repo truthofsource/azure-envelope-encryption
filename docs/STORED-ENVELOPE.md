@@ -1,5 +1,7 @@
 # What is stored with an encrypted value
 
+**Terms used here:** A nonce is a value used once for a particular encryption key.
+
 | Field | Purpose | Sensitive? |
 | --- | --- | --- |
 | Ciphertext | Encrypted payload | Treat as protected record material |
@@ -10,7 +12,7 @@
 | Key version | Exact version needed for historical unwrap | Required for recovery |
 | Domain and record identifiers | Reconstructed AAD context | Not necessarily stored in the same column; must remain stable |
 
-The source field wrapper also returns a last-four display hint. That is intentionally separate from the encrypted value and needs its own disclosure/access policy. The local demo uses fictional values and does not imply that ciphertext hides every metadata field.
+The source field wrapper also returns a last-four display hint. That is intentionally separate from the encrypted value and needs its own disclosure/access policy. The local demo uses fictional values and does not imply that encrypted value hides every metadata field.
 
 Binary values may be encoded as base64 in a JSON envelope. Base64 is encoding, not encryption. Do not replace encryption with base64 or hash a sensitive field and call it reversible protection.
 

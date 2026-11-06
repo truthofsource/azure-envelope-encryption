@@ -1,8 +1,10 @@
 # Rotation and recovery
 
+**Terms used here:** The data key encrypts a value; the wrapping key protects that data key. DNS turns a service name into the network address used to reach it.
+
 ## Rotation creates a new version
 
-New writes can use the current Key Vault key version. Existing envelopes retain their own key ID/version, so reads must select that historical version. Rotation does not automatically rewrite old ciphertext, rewrap every stored DEK or prove backup recovery.
+New writes can use the current Key Vault key version. Existing envelopes retain their own key ID/version, so reads must select that historical version. Rotation does not automatically rewrite old encrypted value, rewrap every stored DEK or prove backup recovery.
 
 The reference Terraform carries the implemented RSA-3072 wrap-only pattern with a 180-day expiry policy and rotation/notification settings 30 days before expiry. Those settings are a reference, not a fresh apply or a universal retention policy.
 
@@ -28,7 +30,7 @@ No cloud key backup, restore, rotation or deletion is performed by the public de
 python -B -m lab demo
 ```
 
-The in-memory keyring creates v1, creates v2 for new writes and confirms the v1 record still decrypts while v1 is retained. A local reference rewrap protects the same DEK with v2 without changing ciphertext. Removing only that temporary local v1 key shows why latest-key fallback is wrong. This does not model all Azure attribute/policy behavior.
+The in-memory keyring creates v1, creates v2 for new writes and confirms the v1 record still decrypts while v1 is retained. A local reference rewrap protects the same DEK with v2 without changing encrypted value. Removing only that temporary local v1 key shows why latest-key fallback is wrong. This does not model all Azure attribute/policy behavior.
 
 ## Before a real rewrap/migration
 

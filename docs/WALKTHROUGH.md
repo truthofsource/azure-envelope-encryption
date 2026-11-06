@@ -1,12 +1,14 @@
 # Step-by-step envelope encryption
 
+**Terms used here:** A nonce is a value used once for a particular encryption key.
+
 ## 1. Authorize and resolve context
 
 The application resolves the sensitive field and its trusted record identifiers. The wrapper is cryptography, not an access-control API. Do not accept arbitrary caller-supplied metadata as permission to decrypt.
 
 ## 2. Encrypt locally
 
-Generate a fresh AES-256 key and 12-byte nonce. Supply the domain/record/field as authenticated additional data (AAD), then use AES-GCM to produce ciphertext and a 16-byte tag.
+Generate a fresh AES-256 key and 12-byte nonce. Supply the domain/record/field as authenticated additional data (AAD), then use AES-GCM to produce encrypted value and a 16-byte tag.
 
 ## 3. Wrap the DEK
 

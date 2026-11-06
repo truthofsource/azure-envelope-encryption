@@ -1,6 +1,8 @@
 # Commands and expected results
 
-Run from the repository root. The default commands use fictional values and ephemeral local keys, not Azure resources.
+**Terms used here:** A fixture is test data or a test setup used instead of real business records.
+
+Run from the repository root. The default commands use fictional values and temporary local keys, not Azure resources.
 
 ## 1. Setup
 
@@ -31,7 +33,7 @@ python -B -m unittest discover -s tests -v
 python -B -m lab demo
 ```
 
-Node prints TAP counts; Python should finish in `OK`. The CLI JSON contains seven checks with `passed: true`, plus an example envelope. Its base64 fields are ciphertext/metadata, not an exported private RSA key or raw DEK. Keys exist only in this process, so the printed envelope is not a recoverable backup after the process exits.
+Node prints TAP counts; Python should finish in `OK`. The CLI JSON contains seven checks with `passed: true`, plus an example envelope. Its base64 fields are encrypted value/metadata, not an exported private RSA key or raw DEK. Keys exist only in this process, so the printed envelope is not a recoverable backup after the process exits.
 
 ## 3. Focused failure and rotation checks
 
@@ -50,7 +52,7 @@ A negative test passes when authentication/key selection correctly fails. The lo
 python -B -m lab serve --port 8011
 ```
 
-Open [the loopback page](http://127.0.0.1:8011), run the demonstration and inspect Validation/Evidence. Stop with Ctrl+C. Each run creates fresh ephemeral keys and fictional ciphertext. No private-key export is exposed by the server.
+Open [the loopback page](http://127.0.0.1:8011), run the demonstration and inspect Validation/Evidence. Stop with Ctrl+C. Each run creates fresh temporary keys and fictional encrypted value. No private-key export is exposed by the server.
 
 ## 5. Terraform without cloud mutation
 

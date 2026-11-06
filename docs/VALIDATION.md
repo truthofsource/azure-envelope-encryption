@@ -1,5 +1,7 @@
 # Validation evidence
 
+**Terms used here:** A fixture is test data or a test setup used instead of real business records. Role-based access control gives people or services permissions according to their roles.
+
 | Check | Recorded local result |
 | --- | --- |
 | Extracted Node field/bank tests plus key-identifier tests | 13 passed: nine original tests and four public helper checks |
@@ -15,7 +17,7 @@ The [machine record](validation-results.json) includes date, counts and source h
 ## Important distinctions
 
 - Original Node tests inject wrapper fixtures to isolate AES/context behavior; they do not prove Key Vault or real RSA wrapping.
-- The Python exercise does use real AES-256-GCM and RSA-OAEP-256 with ephemeral in-memory keys. It is not managed-identity, Azure policy or HSM acceptance.
+- The Python exercise does use real AES-256-GCM and RSA-OAEP-256 with temporary in-memory keys. It is not managed-identity, Azure policy or HSM acceptance.
 - Rotation/rewrap/missing-version cases are local simulations, not production operations or a data migration.
 - No original records, actual key material or live vault identifiers are included. No private key is written or returned by the workbench.
 - Public AAD labels and Python envelope format are reference adaptations. They must not be mass-applied to existing stored records.

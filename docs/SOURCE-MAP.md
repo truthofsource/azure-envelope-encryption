@@ -1,5 +1,7 @@
 # Implementation source map
 
+**Terms used here:** A fixture is test data or a test setup used instead of real business records.
+
 | Public module | Relationship to the actual platform |
 | --- | --- |
 | `reference/fieldEncryption.ts` | Actual AES-GCM field encrypt/decrypt core and types, separated from SDK imports |
@@ -8,7 +10,7 @@
 | `reference/keyIdentifiers.ts` | Actual configured-key/version validation helpers, exported for public tests |
 | `reference/keyVaultAdapter.ts` | Actual managed-identity CryptographyClient wrap/unwrap factory, split into a separate optional module |
 | `reference/recordTypes.ts` | Type-only boundary replacing the private application contract import |
-| `lab/envelope.py` | Standalone real-crypto reference with local ephemeral RSA version rotation/rewrap |
+| `lab/envelope.py` | Standalone real-crypto reference with local temporary RSA version rotation/rewrap |
 | `infra/` | Related RSA-3072, rotation, recovery protection and exact-key runtime permission pattern |
 
 The source tests use injected key wrappers, including deliberately simple fixtures, to isolate AES behavior. Those fixtures are test doubles, not the production wrapping algorithm. The local Python reference uses actual RSA-OAEP-256 wrapping.
