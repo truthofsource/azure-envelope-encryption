@@ -52,7 +52,7 @@ flowchart LR
 | Exact key/version validation | Reject a foreign key identifier or incorrectly structured historical version | [Rules](reference/keyIdentifiers.ts) |
 | Key Vault wrapping adapter | Use managed identity and recorded key version for RSA wrap/unwrap | [Adapter](reference/keyVaultAdapter.ts) |
 | Real local crypto exercise | Demonstrate tampering, context binding, rotation and reference rewrap without cloud calls | [Reference](lab/envelope.py) |
-| Vault/key and scoped RBAC | Private RBAC vault, optional RSA-3072 wrap-only key and exact-key runtime grant | [Terraform](infra/main.tf) |
+| Vault/key and scoped RBAC | A private vault, an optional RSA-3072 key for protecting data keys, and application access limited to that key | [Terraform](infra/main.tf) |
 
 ## Proof It Works
 
@@ -147,7 +147,7 @@ Envelope encryption keeps bulk payload work local and makes key control explicit
 | [Commands](docs/COMMANDS.md) | Copy commands and check expected outcomes |
 | [Recovery](docs/RECOVERY.md) | Rotation, historical keys, backup and restore boundaries |
 | [Operations](docs/OPERATIONS.md) | Diagnose service, permission and authentication failures |
-| [Validation](docs/VALIDATION.md) | Inspect real local evidence and untested cloud boundaries |
+| [Validation](docs/VALIDATION.md) | See what the local tests prove and what was not tested in Azure |
 | [Source map](docs/SOURCE-MAP.md) | Actual source versus public adapters and namespace changes |
 | [Screenshot plan](docs/SCREENSHOT-PLAN.md) | Capture actual nonproduction portal/terminal evidence later |
 | [References](docs/REFERENCES.md) | Technical sources and presentation credits |
