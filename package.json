@@ -1,0 +1,12 @@
+{
+  "name": "azure-envelope-encryption",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:source": "node --experimental-strip-types --test reference/fieldEncryption.test.ts reference/bankDetailsEncryption.test.ts reference/keyIdentifiers.test.ts"
+  },
+  "optionalDependencies": {
+    "@azure/identity": "4.14.1",
+    "@azure/keyvault-keys": "4.10.2"
+  }
+}

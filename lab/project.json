@@ -1,0 +1,21 @@
+{
+  "title": "Azure Key Vault Encryption Wrapper",
+  "domain": "CLOUD SECURITY / ENVELOPE ENCRYPTION / KEY MANAGEMENT",
+  "subtitle": "Encrypt sensitive fields, wrap the data key and retain the exact key version.",
+  "scenario": "A workforce platform handles sensitive onboarding and payroll fields. Database/storage encryption alone does not enforce application-level field access. Records also need protection against tampering, wrong-record reuse and losing decryption after key rotation.",
+  "outcome": "Add an application-level protection layer around sensitive records while keeping key custody, historical reads and recovery explicit.",
+  "flow": [
+    "Authorize the request and resolve the record context",
+    "Generate a fresh AES key and encrypt the value",
+    "Wrap that data key with the Key Vault RSA key",
+    "Store ciphertext, nonce, tag and exact key version",
+    "Unwrap the recorded version and authenticate the same context"
+  ],
+  "notes": [
+    "This run uses real AES-GCM/RSA cryptography with ephemeral in-memory keys, not an Azure Key Vault emulator or live service.",
+    "The actual Node source tests isolate field encryption with injected wrapper fixtures. The Python example additionally uses real local RSA wrapping.",
+    "Public AAD labels and formats are reference namespaces, not a migration or a drop-in decoder for actual stored records.",
+    "No private key, real sensitive value or cloud credential is written to disk or returned by the dashboard."
+  ],
+  "boundary": "Actual implementation excerpts plus a real local crypto exercise using fictional values; no cloud request."
+}

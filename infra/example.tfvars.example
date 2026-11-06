@@ -1,0 +1,9 @@
+subscription_id = "<your-subscription-id>"
+tenant_id = "<your-tenant-id>"
+resource_group_name = "rg-example-encryption"
+vault_name = "<globally-unique-vault-name>"
+enable_wrapping_key = false
+key_operations_ready = false
+grant_runtime_wrap_unwrap = false
+runtime_principal_id = ""
+# No key material or app secret belongs in Terraform input or state.

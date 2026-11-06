@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "executed_at_utc": "2026-11-06T19:34:36.234796+00:00",
+  "node_tests": {
+    "passed": 13,
+    "original_field_and_bank_tests": 9,
+    "additional_identifier_tests": 4,
+    "failed": 0
+  },
+  "python_tests": {
+    "passed": 13,
+    "failed": 0
+  },
+  "demonstration_checks": 7,
+  "browser": {
+    "project": "azure-envelope-encryption",
+    "desktop": true,
+    "mobile": true,
+    "rerun": true,
+    "tabs": true,
+    "externalOriginDenied": true,
+    "unknownAssetDenied": true,
+    "browserErrors": 0
+  },
+  "terraform": {
+    "validate": "passed",
+    "mock_tests_passed": 3,
+    "applied": false
+  },
+  "workflow_lint": "actionlint 1.7.12 passed",
+  "source_secret_scan": "Trivy 0.75.0 zero findings",
+  "cloud_requests": 0,
+  "private_keys_exported": 0,
+  "source_hashes": {
+    "lab/__init__.py": "95a8296d613b692bb13af925e90204c901108a2c30dfd3ffd4d0fadca55cb5f9",
+    "lab/__main__.py": "d528e758b251fa9f3bf42a326d8644a7055bcd1884112579e88981f33dcbba13",
+    "lab/demo.py": "1ee90686323e9ae6b91bddf1dd303e8c90c5121078f1e27634479fd3381d82bb",
+    "lab/domain.py": "ca0bef37246279db9c40171624c5595985d5fe6f153ce1b6b3fc0056d3cbb836",
+    "lab/envelope.py": "8c8b15b78109986eb15b4bc444706a7759b2429ab87b902eeedd876c59dd46e3",
+    "lab/project.json": "e017f123a9c2b8208e83e2273bb5fa610e494c5a3f6b5c256522649b14b49759",
+    "lab/workbench.py": "cc2889350fd182e10a74b1153e2c96ef93d5c295724f0ae281d757d1a2e546b5",
+    "reference/bankDetailsEncryption.test.ts": "8dc57d6d93434ad18403b6cec5ed5ea648b7ba0fe96db9c7c199322e8c8669f4",
+    "reference/bankDetailsEncryption.ts": "49063edb25034a97cf7bdc543e947c85acffdf542242e7cd8b16dafe27ca2930",
+    "reference/fieldEncryption.test.ts": "39346a24cf9c1a1586ebe44a31564ce188a7690c9cf26e7ac60cb297b3ae7cf5",
+    "reference/fieldEncryption.ts": "140e29232918b2c129c0282d39e5015b28e55fb939e72a4c8f6cd5825abcd0b9",
+    "reference/keyIdentifiers.test.ts": "3b91bad4464794639991496be15c0e275c38681731b67b14b7afec271c9af200",
+    "reference/keyIdentifiers.ts": "a9dcea42ad9544b8dd8c79e59f4c9c444910a77ffac941da2fda352fdd999cb6",
+    "reference/keyVaultAdapter.ts": "cc41cd2ac3e8bf6341e19bb2e0165ef54cbe2176cf335840d777a8b2e45be657",
+    "reference/recordTypes.ts": "096d5cb0699d6f77c7684f046126f31666716999ed774c719653e89d4f47bbd4",
+    "infra/.terraform.lock.hcl": "6a12130fd32160e875cdf0d58bacb684bc5061fdf14a38bd905818a952f66aa7",
+    "infra/main.tf": "a5d6fcf8fba4526c262ed0d04e7e13e38a458c133d685d4bade5e7656d15dfbb",
+    "infra/tests/encryption.tftest.hcl": "ae1d68b1c2b8cdbb5c011ff0a6d7e272e330d43d8f09bc28fedc5bc6f4ecfca6",
+    "infra/variables.tf": "a1582da6ba0d5de727c85a5ae8a852527d6c75bfbed0fe16bb68a2e0494ef0d2",
+    "infra/versions.tf": "836ba1ff33d3fb4320f062a047bc4887b67986ad1b030970f7370ef132d8cd28"
+  }
+}
