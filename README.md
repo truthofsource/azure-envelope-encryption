@@ -22,13 +22,26 @@ This case study comes from the workforce platform I built and operated. It inclu
 
 The local demonstration uses real cryptography with temporary in-memory RSA keys. It is not a cloud permission test or a production practice recovery. [Evidence scope](docs/VALIDATION.md) and [source mapping](docs/SOURCE-MAP.md) separate the layers.
 
+## Tools Used and What They Do
+
+| Tool or service | What it does | Where it fits |
+| --- | --- | --- |
+| Node.js node:crypto | Encrypt/decrypt values and generate fresh random data keys. | Actual application cryptography implementation. |
+| AES-256-GCM and RSA-OAEP-256 | Protect the value and separately wrap its small data key. | Algorithms, not separate services or scanner products. |
+| Azure Key Vault | Hold the versioned wrapping key. | Actual hosted key boundary; the database does not store the unwrapped key. |
+| Azure Identity and Key Vault Keys SDKs | Obtain workload credentials and call the key cryptography operations. | Selected hosted adapter; real service calls are not part of default tests. |
+| Python cryptography | Run the public encryption illustration with local keys. | Reference library, separate from the actual Node.js implementation. |
+| Terraform and the Node test runner | Describe the key policy and test extracted encryption rules. | Local/source validation; no live rotation or key migration is performed. |
+
+A new key version does not automatically rewrite old encrypted values. The stored version and original record context remain part of recovery.
+
 ## Step by Step
 
 A short walkthrough of the process, with technical instructions and evidence limits in the sections below.
 
 1. **Choose the sensitive value** — The application identifies the value and the record it belongs to. Only an authorized operation should request encryption or decryption.
 
-2. **Encrypt and protect the key** — A fresh data key encrypts the value. Azure Key Vault protects that data key, and the stored record retains the required key version.
+2. **Encrypt and protect the key (Node.js crypto and Key Vault)** — A fresh data key encrypts the value. Azure Key Vault protects that data key, and the stored record retains the required key version.
 
 3. **Recover the value when permitted** — The application uses the recorded key version to recover the data key. It checks that the encrypted content still belongs to the expected record before returning the value.
 
