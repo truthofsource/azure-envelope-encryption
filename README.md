@@ -2,7 +2,7 @@
 
 **Protect sensitive fields even if someone obtains a copy of the stored records.**
 
-[The problem](#the-business-problem) · [The solution](#the-solution) · [What was built](#what-was-built) · [Proof it works](#proof-it-works) · [Commands](docs/COMMANDS.md)
+[The problem](#the-business-problem) · [The solution](#the-solution) · [What was built](#what-was-built) · [Proof it works](#proof-it-works) · [Commands](docs/COMMANDS.md) · [Step by step](#step-by-step)
 
 ![Working encryption reference](docs/images/01-overview.png)
 
@@ -21,6 +21,18 @@ Encrypt each sensitive value with its own temporary data key. Use Azure Key Vaul
 This case study comes from the workforce platform I built and operated. It includes actual sensitive-field and bank-details encryption source/tests, the Key Vault adapter boundary and related key/RBAC Terraform. The deployed pattern also supports separate payroll/form encryption domains. No real records, credentials, tenant IDs or production state are included.
 
 The local demonstration uses real cryptography with temporary in-memory RSA keys. It is not a cloud permission test or a production practice recovery. [Evidence scope](docs/VALIDATION.md) and [source mapping](docs/SOURCE-MAP.md) separate the layers.
+
+## Step by Step
+
+A short walkthrough of the process, with technical instructions and evidence limits in the sections below.
+
+1. **Choose the sensitive value** — The application identifies the value and the record it belongs to. Only an authorized operation should request encryption or decryption.
+
+2. **Encrypt and protect the key** — A fresh data key encrypts the value. Azure Key Vault protects that data key, and the stored record retains the required key version.
+
+3. **Recover the value when permitted** — The application uses the recorded key version to recover the data key. It checks that the encrypted content still belongs to the expected record before returning the value.
+
+4. **Test changes and plan recovery** — The local examples check altered content, wrong record details and key-version handling. Keeping required older keys is a separate operational responsibility from encrypting new values.
 
 ## Architecture
 
