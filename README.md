@@ -8,7 +8,11 @@
 
 ## The Business Problem
 
-The application handles sensitive onboarding and payroll details. Encryption provided by the database or storage service is useful, but the application also needs control over who can read individual fields. Older records must remain readable after encryption keys change.
+Onboarding and payroll administration require sensitive personal and payment details to be stored and retrieved by authorized staff. Those values can outlive a single deployment and may also appear in database backups. Protecting access to the database is necessary, but the organization also needs protection around the stored field values themselves.
+
+Encryption introduces a recovery responsibility: an older record must remain readable with the key version that protected it. Moving encrypted bytes to the wrong employee or field must also fail rather than produce a valid-looking result in the wrong context. Lost key material can make retained records unusable even when the database is intact.
+
+The business need was additional protection for sensitive fields, tied to the right record and supported by clear key custody, versioning and recovery requirements.
 
 ## The Solution
 
