@@ -74,7 +74,34 @@ python3 -m venv .venv
 
 **Where:** Your editor.
 
-Create encrypt_field.py below. The associated record ID is authenticated context; storing an envelope for one person must not allow another person's record context to decrypt it.
+Create key_version.py and encrypt_field.py below. The helper rejects a versionless/unapproved key URL and the wrapper records the actual wrapping-response key version only if it matches the selected one; record-ID context is authenticated separately by AES-GCM.
+
+Create **`key_version.py`** with the following contents:
+
+```python
+import re
+from urllib.parse import urlsplit
+
+def versioned_key_id(value):
+    if not isinstance(value, str) or value.strip() != value:
+        raise ValueError('Use the exact versioned Key Identifier from your public-Azure vault')
+    uri = urlsplit(value)
+    parts = uri.path.split('/')
+    if (uri.scheme != 'https' or not (uri.hostname or '').endswith('.vault.azure.net')
+        or uri.username is not None or uri.password is not None or uri.port is not None
+        or uri.query or uri.fragment or len(parts) != 4 or parts[1] != 'keys'
+        or not re.fullmatch(r'[A-Za-z0-9-]+', parts[2])
+        or not re.fullmatch(r'[A-Za-z0-9-]+', parts[3]) or parts[3].lower() == 'latest'):
+        raise ValueError('Use https://YOUR_VAULT.vault.azure.net/keys/NAME/VERSION, not a versionless or portal URL')
+    return f'https://{uri.hostname}/keys/{parts[2]}/{parts[3]}'
+
+def matching_wrapping_version(requested, returned):
+    expected = versioned_key_id(requested)
+    actual = versioned_key_id(returned)
+    if expected != actual:
+        raise ValueError('The wrapping response identifies a different key/version; do not store this envelope')
+    return actual
+```
 
 Create **`encrypt_field.py`** with the following contents:
 
@@ -83,17 +110,20 @@ import os, json, base64
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from azure.identity import AzureCliCredential
 from azure.keyvault.keys.crypto import CryptographyClient, KeyWrapAlgorithm
+from key_version import versioned_key_id, matching_wrapping_version
 
 def b64(data): return base64.b64encode(data).decode('ascii')
+key_id = versioned_key_id(os.environ['WRAPPING_KEY_VERSION_ID'])
 credential = AzureCliCredential()
-key_id = os.environ['WRAPPING_KEY_VERSION_ID']
 crypto = CryptographyClient(key_id, credential)
 dek = AESGCM.generate_key(bit_length=256)
 nonce = os.urandom(12)
 aad = b'employee:LAB-001:private-field:v1'
 ciphertext = AESGCM(dek).encrypt(nonce, b'fictional-private-value', aad)
-wrapped = crypto.wrap_key(KeyWrapAlgorithm.rsa_oaep_256, dek).encrypted_key
-envelope = {'schema': 1, 'key_id': key_id, 'nonce': b64(nonce),
+wrap_result = crypto.wrap_key(KeyWrapAlgorithm.rsa_oaep_256, dek)
+recorded_version = matching_wrapping_version(key_id, wrap_result.key_id)
+wrapped = wrap_result.encrypted_key
+envelope = {'schema': 1, 'key_id': recorded_version, 'nonce': b64(nonce),
             'ciphertext': b64(ciphertext), 'wrapped_key': b64(wrapped)}
 recovered = crypto.unwrap_key(KeyWrapAlgorithm.rsa_oaep_256, wrapped).key
 assert AESGCM(recovered).decrypt(nonce, ciphertext, aad) == b'fictional-private-value'
@@ -106,10 +136,12 @@ print(json.dumps({'round_trip': True, 'envelope_fields': list(envelope)}))
 
 **Where:** Your private terminal configuration.
 
-Sign in as the intended key user, configure WRAPPING_KEY_VERSION_ID without committing it, and run the script. This deliberately makes real Key Vault operations in your own lab; do not substitute production records.
+Sign in as the intended key user and enter the exact versioned Key Identifier from your public-Azure vault. The script rejects a versionless URL before a key operation and refuses a different returned key/version; these are real Key Vault calls only when you run this in your own lab.
 
 ```bash
 az login
+read -r -p 'Versioned Key Identifier from your lab vault: ' WRAPPING_KEY_VERSION_ID
+export WRAPPING_KEY_VERSION_ID
 .venv/bin/python encrypt_field.py
 ```
 
@@ -155,5 +187,6 @@ The numbered steps describe a build procedure. Local syntax checks, an accepted 
 
 - [learn.microsoft.com — quick-create-python](https://learn.microsoft.com/en-us/azure/key-vault/keys/quick-create-python)
 - [cryptography.io — aead](https://cryptography.io/en/latest/hazmat/primitives/aead/)
+- [learn.microsoft.com — azure.keyvault.keys.crypto.wrapresult?view=azure-python](https://learn.microsoft.com/en-us/python/api/azure-keyvault-keys/azure.keyvault.keys.crypto.wrapresult?view=azure-python)
 
 The walkthrough layout follows the prerequisites → creation/configuration → test → verification → troubleshooting → cleanup pattern of the [Splunk project reference](https://github.com/davidharris6/splunk-siem-log-analysis). Its Splunk-specific settings are not copied into unrelated projects.
