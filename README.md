@@ -41,7 +41,7 @@ A new key version does not automatically rewrite old encrypted values. The store
 
 ## Step by Step
 
-Build an independent version with the [reader-operated walkthrough](docs/BUILD-YOUR-OWN.md). It gives prerequisites, working locations, numbered actions, source-derived commands, expected results, verification and cleanup.
+Build an independent version with the [step-by-step build guide](docs/BUILD-YOUR-OWN.md). It gives prerequisites, working locations, numbered actions, source-derived commands, expected results, verification and cleanup.
 
 For this project, your working starting point is [`lab/envelope.py`](lab/envelope.py). Expected scope: Local cryptographic round trips and rejection cases; no Key Vault operation or key rotation.
 
