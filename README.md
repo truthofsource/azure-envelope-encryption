@@ -41,6 +41,19 @@ A new key version does not automatically rewrite old encrypted values. The store
 
 ## Step by Step
 
+Build an independent version with the [reader-operated walkthrough](docs/BUILD-YOUR-OWN.md). It gives prerequisites, working locations, numbered actions, source-derived commands, expected results, verification and cleanup.
+
+For this project, your working starting point is [`lab/envelope.py`](lab/envelope.py). Expected scope: Local cryptographic round trips and rejection cases; no Key Vault operation or key rotation.
+
+1. **Create your own workspace.** Copy the project and record the source version before editing.
+2. **Prepare and run the baseline.** Use the documented runtimes and selected dependencies, then run the local checks.
+3. **Make your own change.** Edit a project-specific fixture, configuration or rule and rerun its positive and negative cases.
+4. **Verify and document your result.** Capture your own evidence and distinguish a local example from a live integration.
+5. **Extend and close out deliberately.** Plan any independent cloud work separately and clean up only what you created.
+
+<details>
+<summary>How the underlying platform process works</summary>
+
 A short walkthrough of the process, with technical instructions and evidence limits in the sections below.
 
 1. **Choose the sensitive value** — The application identifies the value and the record it belongs to. Only an authorized operation should request encryption or decryption.
@@ -50,6 +63,8 @@ A short walkthrough of the process, with technical instructions and evidence lim
 3. **Recover the value when permitted** — The application uses the recorded key version to recover the data key. It checks that the encrypted content still belongs to the expected record before returning the value.
 
 4. **Test changes and plan recovery** — The local examples check altered content, wrong record details and key-version handling. Keeping required older keys is a separate operational responsibility from encrypting new values.
+
+</details>
 
 ## Architecture
 
