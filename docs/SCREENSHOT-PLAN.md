@@ -1,5 +1,7 @@
 # Optional actual nonproduction screenshots
 
+Placeholder screenshots were removed on November 15, 2026. Written test results below retain their original dates and scope; historical screenshot references describe earlier captures. Proper Azure and application screenshots are deferred. The illustrated architecture is a source-based explanation, not a live-service screenshot.
+
 Current images show real local source/reference behavior. They are not portal captures or a fresh cloud encryption acceptance.
 
 Later capture, using approved fictional data and the existing operating procedure:

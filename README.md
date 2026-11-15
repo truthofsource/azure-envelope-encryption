@@ -1,10 +1,12 @@
 # Azure Key Vault Encryption Wrapper
 
+[![Application envelope encryption — illustrated overview](docs/diagrams/architecture.png)](docs/diagrams/architecture.svg)
+
+[View SVG](docs/diagrams/architecture.svg) · [Download PNG](docs/diagrams/architecture.png) · [Edit in draw.io](docs/diagrams/architecture.drawio)
+
 **Protect sensitive fields even if someone obtains a copy of the stored records.**
 
 [The problem](#the-business-problem) · [The solution](#the-solution) · [What was built](#what-was-built) · [Proof it works](#proof-it-works) · [Commands](docs/COMMANDS.md) · [Step by step](#step-by-step)
-
-![Working encryption reference](docs/images/01-overview.png)
 
 ## The Business Problem
 
@@ -215,7 +217,7 @@ Keep old key versions available for data that still references them, test backup
 | Failure boundary | A meaningful denied, malformed, stale or failed case | Not yet recorded |
 | Recovery / cleanup | What you restored or removed and what remains billed | Not yet recorded |
 
-Capture your own architecture/configuration, one working result and one failure/recovery result. Keep tokens, credentials, personal records and private identifiers out of public screenshots. Existing portfolio images are references, not evidence that you performed these steps.
+Capture your own architecture/configuration, one working result and one failure/recovery result. Keep tokens, credentials, personal records and private identifiers out of public screenshots. The architecture diagram explains the design; record your own results rather than treating it as execution evidence.
 
 ### Troubleshooting order
 
@@ -251,24 +253,7 @@ A short walkthrough of the process, with technical instructions and evidence lim
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  API[Authorized application request] --> Context[Trusted record and field context]
-  Context --> DEK[Fresh 32-byte data key]
-  DEK --> AES[AES-256-GCM encryption]
-  Plain[Sensitive value] --> AES
-  Context -->|Authenticated additional data| AES
-  DEK --> Wrap[RSA-OAEP-256 wrap]
-  Identity[Managed identity: exact-key permission] --> KV[Azure Key Vault key]
-  KV --> Wrap
-  AES --> Store[Stored envelope]
-  Wrap --> Store
-  Store --> Read[Read recorded key ID and version]
-  Read --> Unwrap[Unwrap historical data key]
-  KV --> Unwrap
-  Unwrap --> Auth[Authenticate ciphertext and record context]
-  Auth --> Value[Authorized plaintext in application memory]
-```
+[View the illustrated project overview](docs/diagrams/architecture.svg).
 
 ## What Was Built
 
@@ -312,8 +297,6 @@ python -B -m unittest discover -s tests -p test_envelope.py -k missing_version -
 This is a reference exercise, not a production rewrap/migration command. Key Vault expiry, disable, delete and purge have different effects; [rotation/recovery](docs/RECOVERY.md) explains them.
 
 ### 4. Visible local evidence
-
-![Executed encryption checks](docs/images/02-validation.png)
 
 See [dated validation](docs/VALIDATION.md) for counts, tool versions and boundaries. No cloud key was created, rotated, backed up, disabled or deleted to produce these images.
 

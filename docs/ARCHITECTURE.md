@@ -2,24 +2,23 @@
 
 **Terms used here:** A fixture is test data or a test setup used instead of real business records. A nonce is a value used once for a particular encryption key.
 
-```mermaid
-flowchart LR
-  API[Authorized application request] --> Context[Trusted record and field context]
-  Context --> DEK[Fresh 32-byte data key]
-  DEK --> AES[AES-256-GCM encryption]
-  Plain[Sensitive value] --> AES
-  Context -->|Authenticated additional data| AES
-  DEK --> Wrap[RSA-OAEP-256 wrap]
-  Identity[Managed identity: exact-key permission] --> KV[Azure Key Vault key]
-  KV --> Wrap
-  AES --> Store[Stored envelope]
-  Wrap --> Store
-  Store --> Read[Read recorded key ID and version]
-  Read --> Unwrap[Unwrap historical data key]
-  KV --> Unwrap
-  Unwrap --> Auth[Authenticate ciphertext and record context]
-  Auth --> Value[Authorized plaintext in application memory]
-```
+1. **Authorized application request** → **Trusted record and field context**.
+2. **Trusted record and field context** → **Fresh 32-byte data key**.
+3. **Fresh 32-byte data key** → **AES-256-GCM encryption**.
+4. **Sensitive value** → **AES-256-GCM encryption**.
+5. **Trusted record and field context** → **AES-256-GCM encryption (Authenticated additional data)**.
+6. **Fresh 32-byte data key** → **RSA-OAEP-256 wrap**.
+7. **Managed identity: exact-key permission** → **Azure Key Vault key**.
+8. **Azure Key Vault key** → **RSA-OAEP-256 wrap**.
+9. **AES-256-GCM encryption** → **Stored envelope**.
+10. **RSA-OAEP-256 wrap** → **Stored envelope**.
+11. **Stored envelope** → **Read recorded key ID and version**.
+12. **Read recorded key ID and version** → **Unwrap historical data key**.
+13. **Azure Key Vault key** → **Unwrap historical data key**.
+14. **Unwrap historical data key** → **Authenticate ciphertext and record context**.
+15. **Authenticate ciphertext and record context** → **Authorized plaintext in application memory**.
+
+[View the illustrated project overview](diagrams/architecture.svg).
 
 ## Two keys with different jobs
 
