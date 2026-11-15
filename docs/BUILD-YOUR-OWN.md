@@ -1,107 +1,159 @@
-# Build your own: Azure Key Vault Encryption Wrapper
+# Build your own from scratch: Azure Envelope Encryption
 
-This is a step-by-step build guide for an independent learning copy. Follow the numbered steps in order and record your own results. The included local implementation is not a complete deployment of the private business platform; cloud extensions are separate and must use your own authorized resources.
+Your own field-encryption script that wraps a fresh AES data key with a versioned Azure Key Vault RSA key before a value could be stored in SQL.
 
-## What you will create
+Start with a new folder, your own files and your own accounts. The numbered steps below describe the build; no portfolio repository checkout is required. The existing implementation/evidence elsewhere in this repository is a separate reference, not a claim that your new build has already passed.
 
-Local cryptographic round trips and rejection cases; no Key Vault operation or key rotation.
+## Prerequisites
 
-## Prerequisites and working locations
+Python, Azure CLI, a new Key Vault/RSA wrapping key and a runtime identity permitted to read/wrap/unwrap that key. The vault setup administrator and runtime key user are separate responsibilities.
 
-| Location | What you need |
-| --- | --- |
-| Your workstation | Git and the runtime versions documented in [the command guide](COMMANDS.md); use its package/lockfile instructions. |
-| Bash, Linux or WSL terminal | The commands below use Bash syntax. Prepare Python 3.12 and the compatible Node.js version documented by the project; use the project's pinned dependency files. |
-| PowerShell alternative | Use the PowerShell forms in the command guide, or run this Bash recipe in WSL; do not paste Bash loops into PowerShell. |
-| Azure or external service | Not needed for default local tests. Any cloud extension requires your own account, target, permissions, budget and acceptance plan. |
+Use Bash on Linux/macOS/WSL for Bash blocks and PowerShell for PowerShell blocks. Select the tool versions supported by the official sources below, record the versions you actually install and retain generated dependency locks. Cloud resources, scanner downloads, logs and external AI calls can create costs; review the stated scope before enabling them.
 
-Read [the existing validation scope](VALIDATION.md) before running anything. A recorded historical test result is not evidence that your new copy has passed.
+## Create your project folder
 
-## Step 1: Create your own workspace
-
-**Where:** your workstation, in a new project folder.
-
-1. Clone the public source below into a new directory; keep the source attribution and included license terms. This creates your local learning copy, not cloud resources.
-2. Record the selected commit and tool versions before editing. If you later publish a fork, review any origin, hash or target bindings rather than disabling guards to make the fork pass.
+Choose a new folder name. These first commands create a blank project; an optional `git init` gives it its own history. Create parent directories in your editor when a later step introduces a nested file.
 
 ```bash
-git clone https://github.com/truthofsource/azure-envelope-encryption.git
-cd azure-envelope-encryption
-git rev-parse HEAD
-git rev-parse --show-toplevel
-git status --short
+mkdir my-azure-envelope-encryption
+cd my-azure-envelope-encryption
+git init
 ```
 
-**Expected result:** the project files are present and you can identify the starting source. Continue from this repository root unless a command explicitly changes directory.
+Create `.gitignore` before saving credentials or build outputs:
 
-## Step 2: Prepare dependencies and build the local baseline
+```gitignore
+.venv/
+node_modules/
+.env
+.env.*
+local.settings.json
+credentials.json
+token.json
+*.pem
+*.key
+*.tfstate*
+*.tfplan
+.terraform/
+private*/
+captures/
+backups/
+batch.json
+reports/
+out/
+app-config.local.yaml
+```
 
-**Where:** the same workstation terminal.
+The source/file snippets are a starting implementation you type or paste into the named files. Replace `YOUR_*`, names, regions and addresses only with values from your own lab; do not place real client/employee records in a test project. Keep your terminal in this project root unless a step explicitly changes directory.
 
-1. Follow the runtime instructions and install only the dependencies selected by this project's files. Terraform provider downloads, optional browser downloads and scanner databases are separate prerequisites where the detailed guide identifies them.
-2. Run these source-derived baseline commands one at a time and stop on an unexpected failure. Read any skipped integration cases; a skip is not a successful live check.
+Before a first commit, set your own repository-local author with `git config user.name "YOUR_NAME"` and `git config user.email "YOUR_PUBLIC_COMMIT_EMAIL"`. Review `git status --short` and the staged diff before publishing; ignored local files are not a substitute for reviewing what you upload.
+
+## Step 1 — Create your vault and wrapping key
+
+**Where:** Azure Portal → Key Vault → Keys.
+
+Create a vault with RBAC and appropriate network/recovery settings, then create an RSA wrapping key through your setup administrator. Record the key's full versioned ID privately and assign the intended runtime identity only the required crypto operations.
+
+**Check before continuing:** A specific key version exists and the intended runtime caller can reach/use it.
+
+## Step 2 — Install your crypto dependencies
+
+**Where:** Your new project folder.
+
+Create a virtual environment and install the libraries below. Record their resolved versions and keep credentials, encrypted business samples and Terraform state out of Git.
 
 ```bash
 python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
-npm run test:source
-.venv/bin/python -B -m unittest discover -s tests -v
-.venv/bin/python -B -m lab demo
+.venv/bin/python -m pip install cryptography azure-identity azure-keyvault-keys
+.venv/bin/python -m pip freeze > requirements.lock.txt
 ```
 
-**Expected result:** the selected tests finish without unexpected failures, and a demonstration command, where provided, produces fictional local decisions. These commands reproduce the included lab scope; they do not commission the live platform.
+**Check before continuing:** The selected Python environment imports the local and Azure crypto clients.
 
-## Step 3: Make one project-specific change
+## Step 3 — Create the field wrapper
 
-**Where:** your editor, in your own local copy.
+**Where:** Your editor.
 
-1. Start with [`lab/envelope.py`](../lab/envelope.py) and the matching test or configuration instructions. Add a wrong-record or altered-envelope case and keep decryption from returning a value for it.
-2. Save your new case separately from the original acceptance records, then rerun the affected tests and the baseline. Do not edit recorded scanner results, screenshots or validation counts to manufacture a successful outcome.
+Create encrypt_field.py below. The associated record ID is authenticated context; storing an envelope for one person must not allow another person's record context to decrypt it.
 
-**Expected result:** you can explain what you changed, why the result changed and which negative case still fails safely. An unexpected failure means investigate the implementation or setup, not remove the failing check.
+Create **`encrypt_field.py`** with the following contents:
 
-## Step 4: Verify behavior and capture your own evidence
+```python
+import os, json, base64
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from azure.identity import AzureCliCredential
+from azure.keyvault.keys.crypto import CryptographyClient, KeyWrapAlgorithm
 
-**Where:** the test output, local viewer where supplied, and your private evidence folder.
+def b64(data): return base64.b64encode(data).decode('ascii')
+credential = AzureCliCredential()
+key_id = os.environ['WRAPPING_KEY_VERSION_ID']
+crypto = CryptographyClient(key_id, credential)
+dek = AESGCM.generate_key(bit_length=256)
+nonce = os.urandom(12)
+aad = b'employee:LAB-001:private-field:v1'
+ciphertext = AESGCM(dek).encrypt(nonce, b'fictional-private-value', aad)
+wrapped = crypto.wrap_key(KeyWrapAlgorithm.rsa_oaep_256, dek).encrypted_key
+envelope = {'schema': 1, 'key_id': key_id, 'nonce': b64(nonce),
+            'ciphertext': b64(ciphertext), 'wrapped_key': b64(wrapped)}
+recovered = crypto.unwrap_key(KeyWrapAlgorithm.rsa_oaep_256, wrapped).key
+assert AESGCM(recovered).decrypt(nonce, ciphertext, aad) == b'fictional-private-value'
+print(json.dumps({'round_trip': True, 'envelope_fields': list(envelope)}))
+```
 
-1. If the project supplies a viewer, use its startup command in [the command guide](COMMANDS.md); keep long-running preview servers in a separate terminal. Follow its exact loopback address and stop it with Ctrl+C when finished; for a command-line-only example, inspect its terminal output and generated files instead.
-2. Compare your own output with [the proof and limits](../README.md#proof-it-works), then record source version, command, expected result, observed result and unresolved work. Capture screenshots of your own fictional output rather than presenting the existing screenshots as your execution.
+**Check before continuing:** The file separates the encrypted value, nonce, wrapped data key and wrapping-key version.
 
-**Expected result:** Local cryptographic round trips and rejection cases; no Key Vault operation or key rotation. Your evidence must say whether it covers local logic, a real tool run, a hosted service or a human observation.
+## Step 4 — Run with your intended identity
 
-### Start the local preview
+**Where:** Your private terminal configuration.
 
-Open a second terminal in the same repository root printed by `git rev-parse --show-toplevel`. Run the command below from that root, after the baseline has passed; it stays running while you use the preview.
+Sign in as the intended key user, configure WRAPPING_KEY_VERSION_ID without committing it, and run the script. This deliberately makes real Key Vault operations in your own lab; do not substitute production records.
 
 ```bash
-.venv/bin/python -B -m lab serve --port 8011
+az login
+.venv/bin/python encrypt_field.py
 ```
 
-Open [http://127.0.0.1:8011](http://127.0.0.1:8011). Use the exact hostname shown here; a localhost address and a 127.0.0.1 address are not interchangeable for every project's host checks.
+**Check before continuing:** The script reports a successful fictional round trip without printing plaintext or a data key.
 
-The command uses the same Python environment as the baseline where Python is required. This guide uses an explicit virtual-environment executable rather than activating it; when following other project examples that say `python`, use that same executable if the project has a `.venv`. In WSL, keep the clone and its virtual environment in the same Linux environment; do not reuse a Windows `.venv`.
+## Step 5 — Prove failure and storage boundaries
 
-Keep one preview per listening port. Stop your own earlier preview with Ctrl+C before starting another one on that port, or use only a port override documented by the project. If you stop the preview, rerun only its startup command; you do not need to rebuild or redeploy cloud services.
+**Where:** Your own tests and SQL design.
 
-## Step 5: Plan an independent cloud extension, if needed
+Add tests for a changed ciphertext/tag, a different record-ID context and missing unwrap permission; each must fail without returning a value. Store the envelope in SQL only after encryption, and enforce database record authorization separately from the ability to unwrap a key.
 
-**Where:** your own architecture/configuration files first; a separately authorized lab subscription only later.
+**Check before continuing:** Integrity, identity context, key access and SQL ownership are distinct tested controls.
 
-1. Read the implementation and infrastructure references linked below. Substitute your own names, identities, address ranges and service settings in an isolated environment; a public reference may contain only selected components and is not authority to apply someone else's production state.
-2. List the missing integrations and acceptance checks before deployment: runtime hosting, permissions, network/DNS paths, secrets, source data, notification or provider access as applicable. Keep disabled examples disabled until their specific dependencies, costs and cleanup are understood.
+## Step 6 — Plan rotation and recovery before cleanup
 
-**Expected result:** a scoped extension plan with owners and explicit acceptance criteria, not a claim that the full service is deployed. No cloud `apply`, scanner targeting, paid operation or provider sign-in is implied by the local recipe.
+**Where:** Your key/version inventory.
 
-- [Architecture](ARCHITECTURE.md)
-- [Operations](OPERATIONS.md)
-- [Validation](VALIDATION.md)
-- [Source Map](SOURCE-MAP.md)
+Keep old key versions available for data that still references them, test backup/recovery access and choose explicit rewrap/re-encrypt procedures if rotating. Never delete an old key merely because a newer one exists; remove only a dedicated lab after its encrypted data is no longer required.
 
-## Step 6: Troubleshoot, close out and explain what you built
+**Check before continuing:** The reader can explain encryption before SQL storage and why key deletion can destroy recovery.
 
-**Where:** your project folder and the operating guide for any environment you actually created.
+## Verification and your own screenshots
 
-1. Check the failing stage in order: working directory and runtime, dependencies, test input, configuration, then any separately enabled service. Preserve the error and consult the existing troubleshooting lessons before widening permissions or changing the target.
-2. Stop only the viewers/containers you started, retain your useful evidence and remove only resources belonging to your own reviewed lab. A local-only run needs no cloud deletion; if you created cloud resources, verify residual storage/address/monitoring charges rather than assuming compute stop removes all cost.
+| Evidence | What to record | Your result |
+| --- | --- | --- |
+| New build | Your own files/resource settings and tool versions | Not yet recorded |
+| Working path | The actual successful request, configuration or recovery result | Not yet recorded |
+| Failure boundary | A meaningful denied, malformed, stale or failed case | Not yet recorded |
+| Recovery / cleanup | What you restored or removed and what remains billed | Not yet recorded |
 
-**Finish checklist:** explain the business problem, show your own change and verification, describe one failure/recovery case, identify limitations and name the next owner action. Keep credentials and business records out of public commits and screenshots.
+Capture your own architecture/configuration, one working result and one failure/recovery result. Keep tokens, credentials, personal records and private identifiers out of public screenshots. Existing portfolio images are references, not evidence that you performed these steps.
+
+## Troubleshooting order
+
+1. Confirm the named file, working directory and selected tool/interpreter.
+2. Check the exact input and resource/account selected for the failing step.
+3. Separate identity permission, network/DNS reachability and application validation.
+4. Keep the actual error and reconcile an unknown write outcome before repeating it; do not widen access or repeat paid operations blindly.
+
+The numbered steps describe a build procedure. Local syntax checks, an accepted API request, a completed hosted operation and a human verification are different evidence levels; fill in the verification table with what you actually observed.
+
+## Official implementation references
+
+- [learn.microsoft.com — quick-create-python](https://learn.microsoft.com/en-us/azure/key-vault/keys/quick-create-python)
+- [cryptography.io — aead](https://cryptography.io/en/latest/hazmat/primitives/aead/)
+
+The walkthrough layout follows the prerequisites → creation/configuration → test → verification → troubleshooting → cleanup pattern of the [Splunk project reference](https://github.com/davidharris6/splunk-siem-log-analysis). Its Splunk-specific settings are not copied into unrelated projects.
