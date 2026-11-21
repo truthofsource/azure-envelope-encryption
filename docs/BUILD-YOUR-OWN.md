@@ -188,5 +188,3 @@ The numbered steps describe a build procedure. Local syntax checks, an accepted 
 - [learn.microsoft.com — quick-create-python](https://learn.microsoft.com/en-us/azure/key-vault/keys/quick-create-python)
 - [cryptography.io — aead](https://cryptography.io/en/latest/hazmat/primitives/aead/)
 - [learn.microsoft.com — azure.keyvault.keys.crypto.wrapresult?view=azure-python](https://learn.microsoft.com/en-us/python/api/azure-keyvault-keys/azure.keyvault.keys.crypto.wrapresult?view=azure-python)
-
-The walkthrough layout follows the prerequisites → creation/configuration → test → verification → troubleshooting → cleanup pattern of the [Splunk project reference](https://github.com/davidharris6/splunk-siem-log-analysis). Its Splunk-specific settings are not copied into unrelated projects.
